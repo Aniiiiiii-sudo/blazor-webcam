@@ -2,6 +2,10 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
 }
 
 a, .btn-link {
@@ -13,6 +17,11 @@ a, .btn-link {
     background-color: #1b6ec2;
     border-color: #1861ac;
 }
+
+    .btn-primary:hover {
+        background-color: #155a8a;
+        border-color: #144f78;
+    }
 
 .content {
     padding-top: 1.1rem;
@@ -48,3 +57,103 @@ a, .btn-link {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+/* Main Layout Styling */
+.main-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 20px;
+    flex-wrap: wrap;
+}
+
+/* Canvas Container Styling */
+.canvas-container {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 640px;
+}
+
+/* Video and Overlay Canvas Styling */
+.video-wrapper {
+    position: relative;
+    width: 640px;
+    height: 480px;
+}
+
+.video-feed {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+.overlay-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Controls Container Styling */
+.controls-container {
+    width: 220px;
+}
+
+.controls-card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Button Styling */
+.btn-block {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+}
+
+    .btn-block:hover {
+        opacity: 0.9;
+    }
+
+.btn-info {
+    color: #fff;
+    background-color: #17a2b8;
+    border-color: #138496;
+}
+
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+    }
+
+.btn-warning {
+    color: #fff;
+    background-color: #ffc107;
+    border-color: #e0a800;
+}
+
+    .btn-warning:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+    }
+
+/* Heading Styling */
+h3 {
+    font-weight: bold;
+    color: #007bff;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+

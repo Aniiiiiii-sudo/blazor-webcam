@@ -1,0 +1,38 @@
+﻿<div class="controls-container">
+    <div class="controls-card">
+        <button class="btn btn-primary btn-block mb-2" @onclick="ToggleWebcam">
+            @WebcamButtonLabel
+        </button>
+        <button class="btn btn-info btn-block" @onclick="TogglePoseEstimation">
+            @PoseButtonLabel
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnStart { get; set; }
+    [Parameter] public EventCallback OnStop { get; set; }
+    [Parameter] public EventCallback OnTogglePoseEstimation { get; set; }
+
+    private bool isWebcamRunning = false;
+    private bool isPoseActive = false;
+
+    private string WebcamButtonLabel => isWebcamRunning ? "Stop Webcam" : "Start Webcam";
+    private string PoseButtonLabel => isPoseActive ? "Stop Pose Estimation" : "Start Pose Estimation";
+
+    private async Task ToggleWebcam()
+    {
+        if (isWebcamRunning)
+            await OnStop.InvokeAsync();
+        else
+            await OnStart.InvokeAsync();
+
+        isWebcamRunning = !isWebcamRunning;
+    }
+
+    private async Task TogglePoseEstimation()
+    {
+        await OnTogglePoseEstimation.InvokeAsync();
+        isPoseActive = !isPoseActive;
+    }
+}

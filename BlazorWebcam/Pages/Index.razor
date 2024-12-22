@@ -1,75 +1,42 @@
 ﻿@page "/"
 @inject IJSRuntime JSRuntime
-@inject HttpClient Http
-@using SixLabors.ImageSharp
-@using SixLabors.ImageSharp.Drawing
-@using SixLabors.ImageSharp.Drawing.Processing
-@using SixLabors.ImageSharp.Processing;
-@using SixLabors.ImageSharp.Formats.Jpeg
-@using SixLabors.Fonts
-@using System.Net.Http
-@using System.IO
 
-<h1>Blazor Webcam</h1>
-<video id="videoFeed" width="320" height="240" /><canvas class="d-none" id="currentFrame" width="320" height="240" /><br />
-<input class="form-control mb-3" style="width:320px;" type="text" @bind="captionText" placeholder="Enter caption" />
-<button class="btn btn-primary mb-3" @onclick="CaptureFrame">Capture Frame</button> <br />
-@if (!string.IsNullOrEmpty(frameUri))
-{
-    <img src="@frameUri" />
-}
+<h3 class="text-center mb-4">Webcam Control Panel</h3>
 
+<div class="main-container">
+    <!-- Reference to the Canvas component -->
+    <BlazorWebcam.Shared.Components.Canvas @ref="canvasRef" />
+    <div class="controls-container">
+        <!-- Button to start recording -->
+        <button class="btn btn-primary btn-block mb-2" @onclick="StartRecording">Start Recording</button>
+
+        <!-- Button to start pose estimation -->
+        <button class="btn btn-info btn-block" @onclick="StartPoseEstimation">Start Pose Estimation</button>
+    </div>
+</div>
 
 @code {
-    private string captionText;
-    private string frameUri;
+    // Reference to the Canvas component to invoke its methods
+    private BlazorWebcam.Shared.Components.Canvas canvasRef;
 
-    FontCollection collection = new FontCollection();
-    FontFamily sansFamily;
-    Font captionFont;
-
-    protected override async Task OnInitializedAsync()
+    // Method to start recording the webcam feed
+    private async Task StartRecording()
     {
-        await JSRuntime.InvokeVoidAsync("startVideo", "videoFeed");
+        // Start the webcam feed
+        await canvasRef.StartVideo();
 
-        //Font stored in wwwroot. Fetch it as byte array, and use it
-        var fontBytes = await Http.GetByteArrayAsync("OpenSans-Regular.ttf");
-        collection.Install(new MemoryStream(fontBytes));
-        collection.TryFind("Open Sans", out sansFamily);
-        captionFont = sansFamily.CreateFont(16, FontStyle.Regular);
+        // Call the JavaScript function "startRecording" and pass the video element ID
+        await JSRuntime.InvokeVoidAsync("startRecording", "videoFeed");
     }
 
-    private async Task CaptureFrame()
+    // Method to start pose estimation using Mediapipe
+    private async Task StartPoseEstimation()
     {
-        await JSRuntime.InvokeAsync<String>("getFrame", "videoFeed", "currentFrame", DotNetObjectReference.Create(this));
-    }
+        // Start the webcam feed
+        await canvasRef.StartVideo();
 
-
-    [JSInvokable]
-    public void ProcessImage(string imageString)
-    {
-        byte[] imageData = Convert.FromBase64String(imageString.Split(',')[1]);
-
-        //Do image processing here
-
-        DrawingOptions alignCenter = new DrawingOptions()
-        {
-            TextOptions = new TextOptions()
-            {
-                VerticalAlignment = VerticalAlignment.Center,
-                WrapTextWidth = 304, //Image is 320px wide. This will center with 8px margin on left and right
-                HorizontalAlignment = HorizontalAlignment.Center
-            }
-        };
-
-        using (var image = Image.Load(imageData))
-        {
-            image.Mutate(x => x
-                .Flip(FlipMode.Horizontal) //To match mirrored webcam image
-                .Fill(Color.ParseHex("0008"), new RectangularPolygon(0,220, 320, 20)) //Set footer bar for caption
-                .DrawText(alignCenter, captionText, captionFont, Color.White, new PointF(8, 230)) //center in footer bar)
-            );
-            frameUri = image.ToBase64String(JpegFormat.Instance);
-        }
+        // Call the JavaScript function "startPoseEstimation"
+        // Pass the video element ID and canvas ID for drawing landmarks
+        await JSRuntime.InvokeVoidAsync("startPoseEstimation", "videoFeed", "landmarkCanvas");
     }
 }

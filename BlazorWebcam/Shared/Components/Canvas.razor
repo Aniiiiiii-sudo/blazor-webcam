@@ -1,0 +1,28 @@
+﻿@inject IJSRuntime JSRuntime
+
+<!-- Container for the webcam feed and canvas -->
+<div class="canvas-container">
+    <div class="video-wrapper">
+        <!-- Video element to display the webcam feed -->
+        <video id="videoFeed" width="640" height="480" class="video-feed"></video>
+
+        <!-- Canvas element to draw pose landmarks -->
+        <canvas id="landmarkCanvas" width="640" height="480" class="overlay-canvas"></canvas>
+    </div>
+</div>
+
+@code {
+    // Method to start the webcam feed
+    public async Task StartVideo()
+    {
+        // Calls the JavaScript function "startVideo" and passes the video element ID
+        await JSRuntime.InvokeVoidAsync("startVideo", "videoFeed");
+    }
+
+    // Method to stop the webcam feed
+    public async Task StopVideo()
+    {
+        // Calls the JavaScript function "stopVideo" and passes the video element ID
+        await JSRuntime.InvokeVoidAsync("stopVideo", "videoFeed");
+    }
+}

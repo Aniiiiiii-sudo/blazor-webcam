@@ -3,12 +3,19 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no" />
     <title>BlazorWebcam</title>
     <base href="/" />
+
+    <!-- Stylesheets -->
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
     <link href="BlazorWebcam.styles.css" rel="stylesheet" />
+
+    <!-- Mediapipe Libraries -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
 </head>
 
 <body>
@@ -19,8 +26,10 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+
+    <!-- Custom JavaScript -->
+    <script type="module" src="webcam.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
-    <script src="webcam.js"></script>
 </body>
 
 </html>
