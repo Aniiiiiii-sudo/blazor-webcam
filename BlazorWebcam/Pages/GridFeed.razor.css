@@ -1,0 +1,61 @@
+﻿body {
+}
+
+.controls {
+    display: flex; /* Arrange control buttons in a row */
+    gap: 10px; /* Add spacing between buttons */
+    margin-bottom: 20px; /* Add spacing below the control panel */
+}
+
+.btn-primary {
+    background-color: #007bff; /* Set button background color to blue */
+    color: #fff; /* Set button text color to white */
+}
+
+.btn-success {
+    background-color: #28a745; /* Set button background color to green */
+    color: #fff; /* Set button text color to white */
+}
+
+.btn-info {
+    background-color: #17a2b8; /* Set button background color to light blue */
+    color: #fff; /* Set button text color to white */
+}
+
+#videoGridContainer,
+#animationGridContainer {
+    display: grid; /* Arrange elements in a grid layout */
+    gap: 10px; /* Add spacing between grid items */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Adjust grid columns automatically */
+    margin: 20px; /* Add margin around the grid containers */
+}
+
+canvas {
+    width: 100%; /* Make the canvas responsive */
+    height: auto; /* Adjust canvas height proportionally */
+    border: 1px solid #ccc; /* Add a light border around the canvas */
+}
+
+.center-button {
+    display: flex; /* Enable flexbox for centering */
+    justify-content: center; /* Center the button horizontally */
+    align-items: center; /* Center the button vertically */
+    height: 100px; /* Set a fixed height for the button container */
+    margin-top: 20px; /* Add spacing above the button container */
+}
+
+.camera-table {
+    width: 100%; /* Make the table take full width */
+    border-collapse: collapse; /* Remove spacing between table cells */
+    margin: 20px auto; /* Center the table and add spacing around it */
+}
+
+    .camera-table th, .camera-table td {
+        border: 1px solid #ccc; /* Add a border to table cells */
+        padding: 10px; /* Add padding inside table cells */
+        text-align: left; /* Align text to the left */
+    }
+
+    .camera-table th {
+        background-color: #f4f4f4; /* Set background color for table headers */
+    }

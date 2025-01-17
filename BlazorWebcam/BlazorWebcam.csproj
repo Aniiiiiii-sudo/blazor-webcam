@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
     <!-- Enable implicit using directives to reduce boilerplate -->
     <ImplicitUsings>enable</ImplicitUsings>
+<!-- Explicitly set the assembly name <AssemblyName>MyBlazorApp</AssemblyName> -->
+  
   </PropertyGroup>
 
   <ItemGroup>

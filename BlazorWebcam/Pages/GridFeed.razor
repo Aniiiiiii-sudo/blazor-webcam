@@ -1,0 +1,247 @@
+﻿@page "/grid-feed" 
+<!-- Declares the route for this component. Navigating to "/grid-feed" will render this page. -->
+
+@using System.Text.Json 
+<!-- Imports the System.Text.Json namespace for JSON serialization/deserialization. -->
+
+@inject IJSRuntime JSRuntime 
+<!-- Injects the IJSRuntime service, which is used to call JavaScript functions from Blazor. -->
+
+<script src="grid-feed.js" defer></script> 
+<!-- Includes the external JavaScript file "grid-feed.js". -->
+<!-- The `defer` attribute ensures the script is executed after the HTML is fully parsed. -->
+<!-- This file contains JavaScript logic for interacting with webcams and handling pose estimation. -->
+
+<h1>Camera Grid Control Panel</h1> 
+<!-- Displays the page title. -->
+
+<div class="controls">
+    <button class="btn btn-primary" @onclick="ListAndLoadCameras">List & Load Cameras</button> 
+    <!-- Button to invoke the "ListAndLoadCameras" method, which fetches available webcams via JavaScript. -->
+
+    <button class="btn btn-success" @onclick="StartRecording" disabled="@(!AreCamerasLoaded)">Start Recording</button> 
+    <!-- Button to start recording selected webcams. Disabled if no cameras are loaded (`AreCamerasLoaded` is false). -->
+
+    <button class="btn btn-info" @onclick="DisplayGridFeed" disabled="@(!AreCamerasLoaded)">Display Grid</button> 
+    <!-- Button to display the video grid feed. Disabled if no cameras are loaded. -->
+
+    <button class="btn btn-info" @onclick="StartPoseEstimation" disabled="@(!AreCamerasLoaded)">Start Pose Estimation</button> 
+    <!-- Button to start pose estimation. Disabled if no cameras are loaded. -->
+</div>
+
+<!-- Conditional rendering: Checks if there are any available cameras. -->
+@if (AvailableCameras.Any()) 
+
+{
+    <table class="camera-table">
+        <thead>
+            <tr>
+                <th>Label</th> 
+                <!-- Camera label header. -->
+
+                <th>Active</th> 
+                <!-- Camera active status header. -->
+
+                <th>Resolution</th> 
+                <!-- Camera resolution header. -->
+
+                <th>Frame Rate</th> 
+                <!-- Camera frame rate header. -->
+
+                <th>Feed Recording</th> 
+                <!-- Feed recording status header. -->
+
+                <th>Feed On Canvas</th> 
+                <!-- Feed on canvas status header. -->
+
+                <th>Select</th> 
+                <!-- Camera selection header. -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Loops through each camera in the "AvailableCameras" list and displays its details. -->
+            @foreach (var camera in AvailableCameras) 
+            
+            {
+                <tr>
+                    <td>@camera.Label</td> 
+                    <!-- Displays the camera's label (name). -->
+
+                    <td>@(camera.IsActive ? "Yes" : "No")</td> 
+                    <!-- Displays "Yes" if the camera is active, otherwise "No". -->
+
+                    <td>@camera.Resolution</td> 
+                    <!-- Displays the resolution of the camera. -->
+
+                    <td>@camera.FrameRate</td> 
+                    <!-- Displays the frame rate of the camera. -->
+
+                    <td>@(camera.FeedRecording ? "Yes" : "No")</td> 
+                    <!-- Displays "Yes" if the camera feed is being recorded, otherwise "No". -->
+
+                    <td>@(camera.FeedOnCanvas ? "Yes" : "No")</td> 
+                    <!-- Displays "Yes" if the camera feed is displayed on a canvas, otherwise "No". -->
+
+                    <td><input type="checkbox" @bind="camera.IsSelected" /></td> 
+                    <!-- A checkbox to select or deselect the camera. -->
+                    <!-- The `@bind` directive binds the checkbox's value to the camera's `IsSelected` property. -->
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else 
+
+{
+    <!-- If no cameras are available, display a message. -->
+    <p>No cameras loaded. Click "List & Load Cameras" to detect cameras.</p> 
+    <!-- Message prompting the user to load available cameras. -->
+}
+
+<div id="videoGridContainer"></div> 
+<!-- A container for displaying the video grid feed. -->
+<!-- JavaScript renders the video streams onto this container. -->
+
+<!-- Conditional rendering: Only displays the animation button if pose estimation has started. -->
+@if (IsPoseEstimationStarted) 
+
+{
+    <div class="center-button">
+        <button class="btn btn-info" @onclick="DisplayAnimationCanvas">Display Animation Canvas</button> 
+        <!-- Button to display the animation canvas. Calls "DisplayAnimationCanvas" when clicked. -->
+    </div>
+}
+
+<div id="animationGridContainer" style="display: none;"></div> 
+<!-- A hidden container for the animation grid. -->
+<!-- JavaScript manipulates its visibility and contents. -->
+@code {
+    private class Camera
+    // Defines the "Camera" class, which represents the properties of a webcam.
+    {
+        public string DeviceId { get; set; } = string.Empty;
+        // Stores the unique device ID of the camera.
+
+        public string Label { get; set; } = "Unnamed Camera";
+        // Stores the camera's label (name). Defaults to "Unnamed Camera" if no label is provided.
+
+        public bool IsSelected { get; set; } = true;
+        // Indicates whether the camera is selected for operations.
+
+        public bool IsActive { get; set; } = false;
+        // Indicates whether the camera is currently active.
+
+        public string Resolution { get; set; } = "Unknown";
+        // Stores the camera's resolution (e.g., "1920x1080").
+
+        public string FrameRate { get; set; } = "Unknown";
+        // Stores the camera's frame rate (e.g., "30 FPS").
+
+        public bool FeedRecording { get; set; } = false;
+        // Indicates whether the camera feed is being recorded.
+
+        public bool FeedOnCanvas { get; set; } = false;
+        // Indicates whether the camera feed is displayed on a canvas.
+    }
+
+    private List<Camera> AvailableCameras { get; set; } = new();
+    // A list of all available cameras.
+
+    private bool AreCamerasLoaded => AvailableCameras.Any();
+    // Returns true if cameras have been loaded, otherwise false.
+
+    private bool IsPoseEstimationStarted { get; set; } = false;
+    // Indicates whether pose estimation has started.
+
+
+    private async Task ListAndLoadCameras()
+    // Fetches the list of available cameras from JavaScript and populates "AvailableCameras".
+    {
+        try
+        {
+            var devices = await JSRuntime.InvokeAsync<List<Dictionary<string, string>>>("getAvailableCameras");
+            // Calls the JavaScript function "getAvailableCameras" to get the list of webcams.
+
+            AvailableCameras = devices.Select(device => new Camera
+                // Maps the JavaScript response to the "Camera" class properties.
+                {
+                    DeviceId = device["deviceId"],
+                    Label = device["label"],
+                    Resolution = device["resolution"],
+                    FrameRate = device["frameRate"],
+                    IsActive = device["isActive"] == "true"
+                }).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine("[ERROR] " + ex.Message);
+            // Logs any errors that occur during the process.
+        }
+    }
+
+    private async Task StartRecording()
+    // Starts recording video feeds for selected cameras.
+    {
+        try
+        {
+            var selectedDeviceIds = AvailableCameras.Where(c => c.IsSelected).Select(c => c.DeviceId).ToList();
+            // Gets the device IDs of selected cameras.
+
+            await JSRuntime.InvokeVoidAsync("startRecordingAll", selectedDeviceIds);
+            // Calls the JavaScript function "startRecordingAll" with the list of selected device IDs.
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine("[ERROR] " + ex.Message);
+            // Logs any errors that occur during the recording process.
+        }
+    }
+
+    private async Task DisplayGridFeed()
+    // Displays the video grid feed using JavaScript.
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("displayGridFeedWithCanvases", "videoGridContainer");
+            // Calls the JavaScript function "displayGridFeedWithCanvases" to render the video grid in the specified container.
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine("[ERROR] " + ex.Message);
+            // Logs any errors that occur during the display process.
+        }
+    }
+
+    private async Task StartPoseEstimation()
+    // Starts pose estimation by calling the corresponding JavaScript function.
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("togglePoseEstimation");
+            // Calls the JavaScript function "togglePoseEstimation".
+
+            IsPoseEstimationStarted = true;
+            // Updates the local state to indicate that pose estimation has started.
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine("[ERROR] " + ex.Message);
+            // Logs any errors that occur during the process.
+        }
+    }
+
+    private async Task DisplayAnimationCanvas()
+    // Displays the animation canvas (currently placeholder logic).
+    {
+        try
+        {
+            Console.WriteLine("DisplayAnimationCanvas");
+            // Logs the action (future implementation can include JS integration).
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine("[ERROR] " + ex.Message);
+            // Logs any errors that occur during the process.
+        }
+    }
+}
