@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@using Microsoft.JSInterop
 @using SixLabors.ImageSharp
 @using SixLabors.ImageSharp.Drawing
 @using SixLabors.ImageSharp.Drawing.Processing
@@ -24,6 +25,7 @@
 @code {
     private string captionText;
     private string frameUri;
+    private DotNetObjectReference<Index>? objRef;
 
     FontCollection collection = new FontCollection();
     FontFamily sansFamily;
@@ -31,6 +33,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        objRef = DotNetObjectReference.Create(this);
         await JSRuntime.InvokeVoidAsync("startVideo", "videoFeed");
 
         //Font stored in wwwroot. Fetch it as byte array, and use it
@@ -42,7 +45,10 @@
 
     private async Task CaptureFrame()
     {
-        await JSRuntime.InvokeAsync<String>("getFrame", "videoFeed", "currentFrame", DotNetObjectReference.Create(this));
+        if (objRef is not null)
+        {
+            await JSRuntime.InvokeAsync<string>("getFrame", "videoFeed", "currentFrame", objRef);
+        }
     }
 
 
@@ -77,5 +83,6 @@
     public async ValueTask DisposeAsync()
     {
         await JSRuntime.InvokeVoidAsync("stopVideo", "videoFeed");
+        objRef?.Dispose();
     }
 }
