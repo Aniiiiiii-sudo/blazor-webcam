@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@using Microsoft.JSInterop
 @using SixLabors.ImageSharp
 @using SixLabors.ImageSharp.Drawing
 @using SixLabors.ImageSharp.Drawing.Processing
@@ -9,21 +10,30 @@
 @using SixLabors.Fonts
 @using System.Net.Http
 @using System.IO
+@using System.Text.Json
+@using System.Collections.Generic
 @implements IAsyncDisposable
 
 <h1>Blazor Webcam</h1>
 <video id="videoFeed" width="320" height="240" /><canvas class="d-none" id="currentFrame" width="320" height="240" /><br />
 <input class="form-control mb-3" style="width:320px;" type="text" @bind="captionText" placeholder="Enter caption" />
-<button class="btn btn-primary mb-3" @onclick="CaptureFrame">Capture Frame</button> <br />
+<button class="btn btn-primary mb-3" @onclick="CaptureFrame">Capture Frame</button>
+<button class="btn btn-secondary mb-3 ms-2" @onclick="FetchLandmarks">Fetch Landmarks</button> <br />
 @if (!string.IsNullOrEmpty(frameUri))
 {
     <img src="@frameUri" />
+}
+@if (landmarkFrames?.Count > 0)
+{
+    <p>Captured @landmarkFrames.Count frames with landmarks.</p>
 }
 
 
 @code {
     private string captionText;
     private string frameUri;
+    private DotNetObjectReference<Index>? objRef;
+    private List<LandmarkFrame> landmarkFrames = new();
 
     FontCollection collection = new FontCollection();
     FontFamily sansFamily;
@@ -31,7 +41,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        objRef = DotNetObjectReference.Create(this);
         await JSRuntime.InvokeVoidAsync("startVideo", "videoFeed");
+        await JSRuntime.InvokeVoidAsync("gridFeed.start", "videoFeed");
 
         //Font stored in wwwroot. Fetch it as byte array, and use it
         var fontBytes = await Http.GetByteArrayAsync("OpenSans-Regular.ttf");
@@ -42,7 +54,20 @@
 
     private async Task CaptureFrame()
     {
-        await JSRuntime.InvokeAsync<String>("getFrame", "videoFeed", "currentFrame", DotNetObjectReference.Create(this));
+        if (objRef is not null)
+        {
+            await JSRuntime.InvokeAsync<string>("getFrame", "videoFeed", "currentFrame", objRef);
+        }
+    }
+
+    private async Task FetchLandmarks()
+    {
+        var json = await JSRuntime.InvokeAsync<string>("gridFeed.getHistory");
+        var data = JsonSerializer.Deserialize<List<LandmarkFrame>>(json);
+        if (data != null)
+        {
+            landmarkFrames = data;
+        }
     }
 
 
@@ -77,5 +102,24 @@
     public async ValueTask DisposeAsync()
     {
         await JSRuntime.InvokeVoidAsync("stopVideo", "videoFeed");
+        await JSRuntime.InvokeVoidAsync("gridFeed.stop");
+        objRef?.Dispose();
+    }
+
+    public class LandmarkPoint
+    {
+        public float x { get; set; }
+        public float y { get; set; }
+        public float z { get; set; }
+        public float visibility { get; set; }
+    }
+
+    public class LandmarkFrame
+    {
+        public List<LandmarkPoint> faceLandmarks { get; set; } = new();
+        public List<LandmarkPoint> poseLandmarks { get; set; } = new();
+        public List<LandmarkPoint> leftHandLandmarks { get; set; } = new();
+        public List<LandmarkPoint> rightHandLandmarks { get; set; } = new();
+
     }
 }
