@@ -1,0 +1,46 @@
+@page "/grid"
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<h1>Grid Feed</h1>
+
+<div class="controls">
+    <button class="btn btn-primary" @onclick="ListAndLoadCameras">List &amp; Load Cameras</button>
+    <button class="btn btn-success" @onclick="StartRecording" disabled="@(!AreCamerasLoaded)">Start Recording</button>
+    <button class="btn btn-info" @onclick="DisplayGridFeed" disabled="@(!AreCamerasLoaded)">Display Grid</button>
+    <button class="btn btn-info" @onclick="StartPoseEstimation" disabled="@(!AreCamerasLoaded)">Start Pose Estimation</button>
+</div>
+
+<div id="gridContainer" class="mt-3"></div>
+
+@code {
+    private bool AreCamerasLoaded;
+
+    private async Task ListAndLoadCameras()
+    {
+        await JSRuntime.InvokeVoidAsync("gridFeed.stopAll");
+        await JSRuntime.InvokeVoidAsync("gridFeed.listAndLoadCameras", "gridContainer");
+        AreCamerasLoaded = true;
+    }
+
+    private async Task StartRecording()
+    {
+        await JSRuntime.InvokeVoidAsync("gridFeed.startRecording");
+    }
+
+    private async Task DisplayGridFeed()
+    {
+        await JSRuntime.InvokeVoidAsync("gridFeed.displayGrid", "gridContainer");
+    }
+
+    private async Task StartPoseEstimation()
+    {
+        await JSRuntime.InvokeVoidAsync("gridFeed.startPoseEstimation");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("gridFeed.stopAll");
+    }
+}
+
