@@ -9,6 +9,7 @@
 @using SixLabors.Fonts
 @using System.Net.Http
 @using System.IO
+@implements IAsyncDisposable
 
 <h1>Blazor Webcam</h1>
 <video id="videoFeed" width="320" height="240" /><canvas class="d-none" id="currentFrame" width="320" height="240" /><br />
@@ -71,5 +72,10 @@
             );
             frameUri = image.ToBase64String(JpegFormat.Instance);
         }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("stopVideo", "videoFeed");
     }
 }
